@@ -3,7 +3,7 @@ netwjx / workrave-zh_cn
 
 这是Workrave的简体中文化项目,主要维护po/zh_CN.po文件
 
-[点击这里下载最新的 workrave.mo](https://github.com/downloads/netwjx/workrave/workrave.mo)
+[点击这里下载最新的 workrave.mo](https://github.com/downloads/netwjx/workrave-zh_cn/workrave.mo)
 
 在Windows下的放置目录默认是 `C:\Program Files\Workrave\lib\locale\zh_CN\LC_MESSAGES`
 
