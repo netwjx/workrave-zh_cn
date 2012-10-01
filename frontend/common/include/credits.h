@@ -1,7 +1,7 @@
 /*
  * credits.h --- Workrave credits
  *
- * Copyright (C) 2007, 2008, 2009, 2010, 2011 Rob Caelers <robc@krandor.nl>
+ * Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Rob Caelers <robc@krandor.nl>
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -47,6 +47,7 @@ const char *workrave_translators =
  /* eo */           "Eric lesh <eclesh@pacbell.net>\n"
  /* es */           "Pablo Rodriguez <ousia@gmx.net>\n"
  /* et */           "Marko Väljaots <aatomik@hotmail.com>\n"
+ /* fi */           "Jyri-Petteri Paloposki <jyri-petteri.paloposki@iki.fi>\n"
  /* fr 1 */         "Thomas Basset <thomas.basset@netcourrier.com>\n"
  /* fr 2 */         "Benjamin Siband <translations@wordinfrench.com>\n"
  /* fa */           "Moein Gh <tarfandkhaneh@gmail.com>\n"
@@ -64,15 +65,18 @@ const char *workrave_translators =
  /* pl */           "Mikolaj Machowski <mikmach@wp.pl>\n"
  /* pt_BR -1 */     "Claudio Ferreira Filho <filhocf@yahoo.com.br>\n"
  /* ro */           "Alexandru Szasz <alexxed@gmail.com>\n"
+ /* rs */           "Goran Maričić <maricic.goran@gmail.com>\n"
  /* ru */           "Sergey Kirkinsky <ksa@pfr.altai.ru>\n"
  /* ru */           "FreeWe <free@asdasd.ru>\n"
  /* ru */           "Igor Zinovik <zinovik.igor@gmail.com>\n"
+ /* ru */           "Andrey Bondrov <abondrov@rosalab.ru>\n"
  /* sk */           "Peter Tuharsky <Peter.Tuharsky@banskabystrica.sk>\n"
  /* sl */           "Vanja Cvelbar <cvelbar@gmail.com>\n"
  /* sv */           "Daniel Nylander <info@danielnylander.se>\n"
  /* tr */           "Enver ALTIN <ealtin@parkyeri.com>\n"
  /* uk */           "Mykola Rykov <mykola.rykov@gmail.com>\n"
  /* zh_CN */        "Tao WEI <weitao1979@gmail.com>\n"
+ /* zh_CN */        "Alick Zhao <alick9188@gmail.com>\n"
  /* zh_TW */        "Rex Tsai <chihchun@linux.org.tw>\n"
  /* zh_TW */        "Daniel YC Lin (林原志) <dlin.tw@gmail.com>>\n";
 

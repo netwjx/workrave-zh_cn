@@ -1027,7 +1027,14 @@ DistributionSocketLink::send_packet_except(PacketBuffer &packet, Client *client)
       if (c != client && c->socket != NULL)
         {
           int bytes_written = 0;
-          c->socket->write(packet.get_buffer(), size, bytes_written);
+          try
+            {
+              c->socket->write(packet.get_buffer(), size, bytes_written);
+            }
+          catch (SocketException)
+            {
+              TRACE_MSG("Failed to send");
+            }
         }
       i++;
     }
@@ -1081,7 +1088,14 @@ DistributionSocketLink::send_packet(Client *client, PacketBuffer &packet)
       packet.poke_ushort(0, size);
 
       int bytes_written = 0;
-      client->socket->write(packet.get_buffer(), size, bytes_written);
+      try
+        {
+          client->socket->write(packet.get_buffer(), size, bytes_written);
+        }
+      catch (SocketException)
+        {
+          TRACE_MSG("Failed to send");
+        }
     }
 
   TRACE_EXIT();
@@ -1300,11 +1314,6 @@ DistributionSocketLink::handle_hello(PacketBuffer &packet, Client *client)
   /* int port = */ packet.unpack_ushort();
 
   dist_manager->log(_("Client %s saying hello."), id != NULL ? id : "Unknown");
-
-  dist_manager->log(_("u1 %s."), user != NULL ? user: "Unknown");
-  dist_manager->log(_("u2 %s."), username != NULL ? username: "Unknown");
-  dist_manager->log(_("p1 %s."), pass != NULL ? pass: "Unknown");
-  dist_manager->log(_("p2 %s."), password != NULL ? password : "Unknown");
 
   if ( (username == NULL || (user != NULL && strcmp(username, user) == 0)) &&
        (password == NULL || (pass != NULL && strcmp(password, pass) == 0)))

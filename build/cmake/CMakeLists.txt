@@ -1,11 +1,24 @@
+if(WIN32)
+  set(HAVE_LANGUAGE_SELECTION TRUE)
+endif(WIN32)
 
-set(ALL_LINGUAS nl de eo pl da es zh_TW ru fr pt_BR nb lt cs he eu ca sv ja bg hu tr el sk zh_CN it sl ro)
+set(ALL_LINGUAS "")
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/../../po/LINGUAS" pofile)
+FOREACH(line ${pofile})
+  if("${line}" MATCHES "^[a-zA-Z]")
+    set(ALL_LINGUAS "${ALL_LINGUAS}${line} ")
+  endif("${line}" MATCHES "^[a-zA-Z]")
+ENDFOREACH(line)
+#strip the trailing whitespace. earlier versions of cmake don't have string(STRIP
+STRING(REGEX REPLACE  "[ ]+$" "" ALL_LINGUAS "${ALL_LINGUAS}" )
+#message(STATUS "ALL_LINGUAS = ${ALL_LINGUAS}")
+
 set(SOUND_THEMES subtle default)
 
 # Set Workrave version
 set(VERSION_MAJOR   "1")
 set(VERSION_MINOR   "9")
-set(VERSION_RELEASE "900")
+set(VERSION_RELEASE "910")
 set(VERSION_PATCH   "0")
 if (VERSION_PATCH)
     set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_RELEASE}-${VERSION_PATCH}" )
@@ -80,13 +93,19 @@ if(DEVELOPMENT_MODE)
   set(DATA_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 endif(DEVELOPMENT_MODE)
 
+option(FIND_DBUS "Find DBUS" ON)
+
 ######################################################################
 ## Find packages
 ######################################################################
 
 include(FindGlib)
 include(FindGtkmm)
+
+if(FIND_DBUS)
 include(FindDbus)
+endif(FIND_DBUS)
+
 include(FindGettext)
 #include(FindGnet)
 

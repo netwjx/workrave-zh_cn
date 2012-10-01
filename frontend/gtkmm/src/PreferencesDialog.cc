@@ -143,7 +143,7 @@ PreferencesDialog::~PreferencesDialog()
 #endif
 
   ICore *core = CoreFactory::get_core();
-  core->override_operation_mode(OPERATION_MODE_QUIET, "preferences", false);
+  core->remove_operation_mode_override( "preferences" );
 
   delete connector;
 #ifndef HAVE_GTK3
@@ -230,7 +230,11 @@ PreferencesDialog::create_gui_page()
         }
 
       string txt = languages_current_locale[code].language_name;
-      if (languages_current_locale[code].country_name != "")
+      if( txt.empty() )
+      {
+          txt = "Unrecognized language: (" + code + ")";
+      }
+      else if (languages_current_locale[code].country_name != "")
         {
           txt += " (" + languages_current_locale[code].country_name + ")";
         }
@@ -666,7 +670,7 @@ PreferencesDialog::on_focus_in_event(GdkEventFocus *event)
       OperationMode mode = core->get_operation_mode();
       if (mode == OPERATION_MODE_NORMAL)
         {
-          core->override_operation_mode(OPERATION_MODE_QUIET, "preferences", true);
+          core->set_operation_mode_override( OPERATION_MODE_QUIET, "preferences" );
         }
     }
   TRACE_EXIT();
@@ -680,7 +684,7 @@ PreferencesDialog::on_focus_out_event(GdkEventFocus *event)
   TRACE_ENTER("PreferencesDialog::focus_out");
   ICore *core = CoreFactory::get_core();
 
-  core->override_operation_mode(OPERATION_MODE_QUIET, "preferences", false);
+  core->remove_operation_mode_override( "preferences" );
   TRACE_EXIT();
   return HigDialog::on_focus_out_event(event);
 }

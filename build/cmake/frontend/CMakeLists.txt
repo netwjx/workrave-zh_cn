@@ -161,6 +161,7 @@ if (WIN32)
     # ${FRONTEND_DIR}/common/src/win32/Sound.cc
     
   include_directories( 
+    "${BACKEND_DIR}/src/win32"
     "${COMMON_DIR}/include/win32"
     "${COMMON_DIR}/win32/harpoon/include"
     "${FRONTEND_DIR}/common/src/win32"
@@ -323,7 +324,10 @@ if (GETTEXT_FOUND)
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/../../
   )
 
-  FOREACH(lang ${ALL_LINGUAS})
+  #the string of all the locales must be separated by semicolons so that it is interpreted as a list
+  #eg "it tr" becomes "it;tr"
+  string(REPLACE " " ";" LANGLIST "${ALL_LINGUAS}")
+  FOREACH(lang ${LANGLIST})
     #ADD_CUSTOM_TARGET(
     #  nls-update-${lang}.po
     #  ${GETTEXT_MSGMERGE_EXECUTABLE} ${PO_SRC_DIR}/${lang}.po ${PO_BIN_DIR}/workrave.pot -o ${lang}.po --no-wrap --sort-output
@@ -333,14 +337,33 @@ if (GETTEXT_FOUND)
 
     FILE(MAKE_DIRECTORY "${PO_BIN_DIR}/${lang}/LC_MESSAGES")
 
+    #Languages to allow fuzzy translations for.
+    #For example to allow german and italian fuzzy translations:  -DLANG_FUZZY:STRING=de;it
+    set(OPT_USE_FUZZY "")
+    if(LANG_FUZZY)
+      FOREACH(fuzz ${LANG_FUZZY})
+        if("${fuzz}" STREQUAL "${lang}")
+          set(OPT_USE_FUZZY --use-fuzzy)
+          break()
+        endif("${fuzz}" STREQUAL "${lang}")
+      ENDFOREACH(fuzz)
+    endif(LANG_FUZZY)
+
     ADD_CUSTOM_COMMAND(
       OUTPUT ${PO_BIN_DIR}/${lang}/LC_MESSAGES/workrave.mo
-      COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -c -o ${PO_BIN_DIR}/${lang}/LC_MESSAGES/workrave.mo ${PO_SRC_DIR}/${lang}.po
+      COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} ${OPT_USE_FUZZY} -c -o ${PO_BIN_DIR}/${lang}/LC_MESSAGES/workrave.mo ${PO_SRC_DIR}/${lang}.po
       DEPENDS ${PO_SRC_DIR}/${lang}.po
     )
 
+    #As seen in GUI::init_nls() if win32 workrave has gettext bind to lib/locale
+    if(WIN32)
+      set(LOCALE_DIR "lib/locale")
+    else(WIN32)
+      set(LOCALE_DIR "share/locale")
+    endif(WIN32)
+
     INSTALL(FILES ${PO_BIN_DIR}/${lang}/LC_MESSAGES/workrave.mo
-            DESTINATION share/locale/${lang}/LC_MESSAGES
+            DESTINATION ${LOCALE_DIR}/${lang}/LC_MESSAGES
     )
 
     SET(LANG_TARGETS ${LANG_TARGETS} ${PO_BIN_DIR}/${lang}/LC_MESSAGES/workrave.mo)
@@ -359,24 +382,15 @@ endif(GETTEXT_FOUND)
 ## Installation
 ######################################################################
 
-
-file(GLOB IMAGE_FILES ${CMAKE_SOURCE_DIR}/../../frontend/common/share/images/*.png
-                      ${CMAKE_SOURCE_DIR}/../../frontend/common/share/images/16x16/*.png
-                      ${CMAKE_SOURCE_DIR}/../../frontend/common/share/images/24x24/*.png
-                      ${CMAKE_SOURCE_DIR}/../../frontend/common/share/images/32x32/*.png
-                      ${CMAKE_SOURCE_DIR}/../../frontend/common/share/images/48x48/*.png
-                      ${CMAKE_SOURCE_DIR}/../../frontend/common/share/images/scalable/*.svg)
-file(GLOB ICON_FILES  ${CMAKE_SOURCE_DIR}/../../frontend/common/share/images/*.ico
-	              ${CMAKE_SOURCE_DIR}/../../frontend/common/share/images/win32/*.ico)
-
-install(FILES ${IMAGE_FILES}
-        DESTINATION share/images
+install(
+DIRECTORY ${CMAKE_SOURCE_DIR}/../../frontend/common/share/images/
+DESTINATION share/images
+FILES_MATCHING
+PATTERN "*.png"
+PATTERN "*.ico"
+PATTERN "*.svg"
 )
 
-install(FILES ${ICON_FILES}
-        DESTINATION share/images
-)
-		      
 install(TARGETS workrave
         RUNTIME DESTINATION lib
 )

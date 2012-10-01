@@ -5,7 +5,7 @@ dnl
 
 m4_define([workrave_major_version], [1])
 m4_define([workrave_minor_version], [9])
-m4_define([workrave_micro_version], [906])
+m4_define([workrave_micro_version], [910])
 m4_define([workrave_version_suffix], [0])
 m4_define([workrave_version],
           [workrave_major_version.workrave_minor_version.workrave_micro_version])
@@ -52,8 +52,8 @@ AC_ARG_ENABLE(xml,
                               [compile without XML support])])
 
 AC_ARG_ENABLE(gconf,
-              [AS_HELP_STRING([--disable-gconf],
-                              [compile without Gnome gconf2 support])])
+              [AS_HELP_STRING([--enable-gconf],
+                              [compile with Gnome gconf2 support])])
 
 AC_ARG_ENABLE(gsettings,
               [AS_HELP_STRING([--disable-gsettings],
@@ -83,10 +83,6 @@ AC_ARG_ENABLE(pulse,
               [AS_HELP_STRING([--disable-pulse],
                               [compile without PulseAudio support])])
 
-AC_ARG_ENABLE(x11-monitoring-fallback,
-              [AS_HELP_STRING([--enable-x11-monitoring-fallback],
-                              [compile with fallback monitoring if RECORD is not available (discouraged)])])
-
 AC_ARG_ENABLE(debug,
               [AS_HELP_STRING([--enable-debug],
                               [compile with debugging flags set])])
@@ -111,6 +107,10 @@ AC_ARG_ENABLE(tracing,
               [AS_HELP_STRING([--enable-tracing],
                               [compile with method call tracing])],
               [test "x$enable_tracing" = "xyes" && enable_debug=yes])
+
+AC_ARG_ENABLE(monitors,
+             [AS_HELP_STRING([--enable-monitors=LIST],
+                             [comma separated list of activity monitors to use, currently support: record, screensaver, x11events (Unix Only) @<:@default=yes@:>@])])
 
 
 case x"$target" in
@@ -230,7 +230,7 @@ AM_CONDITIONAL(PLATFORM_OS_OSX, test "x$platform_os_osx" = "xyes")
 AM_CONDITIONAL(PLATFORM_OS_UNIX, test "x$platform_os_unix" = "xyes")
 AM_CONDITIONAL(HAVE_LANGUAGE_SELECTION, test "x$platform_os_win32" = "xyes")
 
-dnl<
+dnl
 dnl Debug
 dnl
 
@@ -357,8 +357,15 @@ then
     LIBS_save=$LIBS
     if test -n "$ac_x_libraries"
     then
-       LIBS="$LIBS -L $ac_x_libraries"
+       LIBS="$LIBS -L$x_libraries"
     fi
+
+    CPPFLAGS_save="$CPPFLAGS"
+    if test -n "$x_includes"
+    then
+	CPPFLAGS="$CPPFLAGS -I$x_includes"
+    fi
+    
     have_xrecord=no
     AC_CHECK_LIB(Xtst, XRecordEnableContext,
                        have_xrecord=yes X_LIBS="$X_LIBS -lXtst" AC_DEFINE(HAVE_XRECORD,,[Define if the RECORD extension is available]),
@@ -367,10 +374,87 @@ then
        AC_MSG_ERROR(X RECORD extension headers files required on Unix platform)
     fi
 
+    AC_CHECK_LIB(Xext, XScreenSaverRegister,
+			have_xscreensaver=yes X_LIBS="$X_LIBS -lX11 -lXext",
+			[],
+			[-lX11 -lXext -lm])
+    AC_CHECK_LIB(Xss, XScreenSaverRegister,
+			have_xscreensaver=yes X_LIBS="$X_LIBS -lX11 -lXss",
+			[],
+			[-lX11 -lXext -lm])
+
+    if test "x$have_xscreensaver" == "xyes"; then
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+		#include <X11/Xlib.h>
+		#include <X11/extensions/scrnsaver.h>
+		]], [[]])], [], [have_xscreensaver=no])
+    fi
+
+    if test "x$have_xscreensaver" = "xyes" ; then
+       AC_DEFINE(HAVE_SCREENSAVER, 1, [Define if XScreenSaver is available.])
+    fi
+    
     PKG_CHECK_MODULES(X11SM, sm ice)
     LIBS=$LIBS_save
+    CPPFLAGS=$CPPFLAGS_save
 fi
 
+dnl
+dnl Monitors
+dnl
+
+if test "x$platform_os_unix" = "xyes"
+then
+
+    if test "x$enable_monitors" == "x"; then
+        if test "x$have_xrecord" == "xyes" ; then
+	  enable_monitors="record"
+        fi
+        if test "x$have_xscreensaver" == "xyes" ; then
+	    if test "x$enable_monitors" != "x"; then
+	        enable_monitors="$enable_monitors,"
+	    fi
+   	    enable_monitors="${enable_monitors}screensaver"
+        fi
+        if test "x$enable_monitors" != "x"; then
+            enable_monitors="$enable_monitors,"
+        fi
+        enable_monitors="${enable_monitors}x11events"
+    fi
+
+    loop=${enable_monitors},
+ 
+    while echo $loop | grep \, &> /dev/null
+    do
+        monitor=${loop%%\,*}
+        loop=${loop#*\,}
+
+        case "$monitor" in
+           record)
+	       if test "x$have_xrecord" != "xyes" ; then
+                   AC_MSG_ERROR([record activity monitor not supported.])
+               fi
+    	       ;;
+
+	   x11events)
+               ;;
+	   
+	   screensaver)
+	       if test "x$have_xscreensaver" != "xyes" ; then
+                   AC_MSG_ERROR([screensaver activity monitor not supported.])
+               fi
+	       ;;
+
+	   *)
+               AC_MSG_ERROR([unknown activity monitor: $monitor])
+	       ;;
+	   
+        esac
+    done
+
+    AC_DEFINE_UNQUOTED(HAVE_MONITORS, "$enable_monitors", "Enabled activity monitors")
+
+fi
 
 dnl
 dnl DBus
@@ -620,7 +704,7 @@ with_localinstall="no"
 AC_ARG_ENABLE(localinstall, AS_HELP_STRING([--enable-localinstall], [install all of the files localy instead of system directories (for distcheck)]), with_localinstall=$enableval, with_localinstall=no)
 
 AS_IF([test "x$with_localinstall" = "xyes"],
-    INDICATORDIR="${libdir}/indicators3/6"
+    INDICATORDIR="${libdir}/indicators3/7"
     INDICATORICONSDIR="${datadir}/libindicate/icons"
     ,
     INDICATORDIR=`$PKG_CONFIG --variable=indicatordir indicator3-0.4 | sed -e 's%/$%%'`
@@ -867,10 +951,6 @@ if test "x$enable_app_text" = "xyes"; then
 fi
 AM_CONDITIONAL(HAVE_APP_TEXT, test "x$config_text" = "xyes")
 
-if test "x$enable_x11_monitoring_fallback" = "xyes"; then
-   AC_DEFINE(HAVE_XRECORD_FALLBACK,,[Define if RECORD fallback is enabled])
-fi
-
 
 dnl
 dnl Generate language list.
@@ -1005,6 +1085,10 @@ echo "          GConf configuration :   ${config_gconf}"
 echo "      GSettings configuration :   ${config_gsettings}"
 echo "            XML configuration :   ${config_xml}"
 echo ""
+if test "$platform_os_unix" = "yes"; then
+echo "            Activity Monitors :   ${enable_monitors}"
+echo ""
+fi
 echo "                      Gtk GUI :   ${config_gtk} (Gtk${config_gtk_version})"
 echo "              Gnome 2 support :   ${config_gnome2}"
 echo "              Gnome 3 support :   ${config_gnome3}"
