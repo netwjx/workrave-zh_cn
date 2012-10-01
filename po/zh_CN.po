@@ -3,6 +3,7 @@
 # This file is distributed under the same license as the WorkRave package.
 # Rex Tsai <chihchun@linux.org.tw>, 2004-2005
 # Alick Zhao <alick9188@gmail.com>, 2012
+# netwjx netwjx <netwjx@mail.com>, 2012
 # The Simplified translation is based on the traditional translation by Rex Tsai
 #
 #
@@ -11,7 +12,7 @@ msgstr ""
 "Project-Id-Version: WorkRave 1.8\n"
 "Report-Msgid-Bugs-To: i18n@workrave.org\n"
 "POT-Creation-Date: 2011-10-22 18:27+0200\n"
-"PO-Revision-Date: 2012-10-01 15:49+0800\n"
+"PO-Revision-Date: 2012-10-01 16:03+0800\n"
 "Last-Translator: netwjx <netwjx@mail.com>\n"
 "Language-Team: \n"
 "Language: \n"
